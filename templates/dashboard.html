@@ -1,0 +1,320 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">📊 Health Dashboard</h1>
+    <a href="/api/export/history" class="neumorphic-form button-link !px-3 sm:!px-4 !py-2 !rounded-full text-xs sm:text-sm">
+      📈 Export Data
+    </a>
+  </div>
+  
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <!-- Total Predictions -->
+    <div class="neumorphic-card text-center">
+      <div class="text-2xl sm:text-3xl mb-2">🔍</div>
+      <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2">Total Predictions</h3>
+      <div id="total-predictions" class="text-2xl sm:text-3xl font-bold text-indigo-600">-</div>
+    </div>
+    
+    <!-- Non-Diabetic -->
+    <div class="neumorphic-card text-center">
+      <div class="text-2xl sm:text-3xl mb-2">✅</div>
+      <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2">Non-Diabetic</h3>
+      <div id="non-diabetic-count" class="text-2xl sm:text-3xl font-bold text-green-600">-</div>
+    </div>
+    
+    <!-- Diabetic -->
+    <div class="neumorphic-card text-center">
+      <div class="text-2xl sm:text-3xl mb-2">⚠️</div>
+      <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2">Diabetic Risk</h3>
+      <div id="diabetic-count" class="text-2xl sm:text-3xl font-bold text-red-600">-</div>
+    </div>
+    
+    <!-- Admin Stats -->
+    <div id="admin-stats" class="neumorphic-card text-center hidden">
+      <div class="text-2xl sm:text-3xl mb-2">👥</div>
+      <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2">Total Users</h3>
+      <div id="total-users" class="text-2xl sm:text-3xl font-bold text-purple-600">-</div>
+    </div>
+  </div>
+
+  <!-- Risk Trend Chart -->
+  <div class="neumorphic-card">
+    <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+      <span class="text-xl sm:text-2xl mr-2">📈</span>
+      Risk Trend (Last 30 Days)
+    </h3>
+    <div class="h-48 sm:h-64">
+      <canvas id="trend-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Bottom Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+    <!-- Quick Actions -->
+    <div class="neumorphic-card">
+      <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+        <span class="text-xl sm:text-2xl mr-2">🚀</span>
+        Quick Actions
+      </h3>
+      <div class="space-y-2 sm:space-y-3">
+        <a href="/" class="neumorphic-form button-link w-full !py-2 sm:!py-3 text-center block text-sm sm:text-base">
+          🔍 New Prediction
+        </a>
+        <a href="/history" class="neumorphic-form button-link w-full !py-2 sm:!py-3 text-center block text-sm sm:text-base">
+          📋 View History
+        </a>
+        <button onclick="showBatchUpload()" class="neumorphic-form button-link w-full !py-2 sm:!py-3 text-sm sm:text-base">
+          📊 Batch Upload
+        </button>
+      </div>
+    </div>
+
+    <!-- Health Tips -->
+    <div class="neumorphic-card">
+      <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+        <span class="text-xl sm:text-2xl mr-2">💡</span>
+        Health Tips
+      </h3>
+      <div class="space-y-2 sm:space-y-3">
+        <div class="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
+          <span class="text-lg sm:text-xl">🍎</span>
+          <p class="text-xs sm:text-sm text-gray-700">Maintain a balanced diet with controlled carbs</p>
+        </div>
+        <div class="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
+          <span class="text-lg sm:text-xl">🏃</span>
+          <p class="text-xs sm:text-sm text-gray-700">Exercise regularly - aim for 30 min daily</p>
+        </div>
+        <div class="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-lg">
+          <span class="text-lg sm:text-xl">💧</span>
+          <p class="text-xs sm:text-sm text-gray-700">Stay hydrated throughout the day</p>
+        </div>
+        <div class="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
+          <span class="text-lg sm:text-xl">😴</span>
+          <p class="text-xs sm:text-sm text-gray-700">Get adequate sleep (7-9 hours)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Required Modal -->
+<div id="auth-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 p-4">
+  <div class="neumorphic-card max-w-md w-full mx-4 bg-white relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full opacity-50 -translate-y-16 translate-x-16"></div>
+    <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-100 to-yellow-100 rounded-full opacity-40 translate-y-12 -translate-x-12"></div>
+    <div class="relative z-10 p-4 sm:p-6 lg:p-8 text-center">
+      <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+      </div>
+      <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">Authentication Required</h3>
+      <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 leading-relaxed">Please log in to access your health dashboard and analytics.</p>
+      <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <a href="/login" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base">
+          <span>🔐</span><span>Login</span>
+        </a>
+        <a href="/register" class="flex-1 bg-gray-100 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base">
+          <span>✨</span><span>Register</span>
+        </a>
+      </div>
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Batch Upload Modal -->
+<div id="batchModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+  <div class="neumorphic-card max-w-md w-full mx-4">
+    <div class="flex justify-between items-center mb-4 sm:mb-6">
+      <h3 class="text-lg sm:text-xl font-bold text-gray-800">📊 Batch Prediction Upload</h3>
+      <button onclick="closeBatchModal()" class="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl">&times;</button>
+    </div>
+    
+    <div class="space-y-3 sm:space-y-4">
+      <div>
+        <label class="input-label text-sm sm:text-base">Upload CSV File</label>
+        <input type="file" id="csv-file" accept=".csv" class="neumorphic-form w-full !rounded-lg text-sm sm:text-base">
+        <p class="text-xs text-gray-500 mt-2">CSV should have columns: pregnancies, glucose, blood_pressure, insulin, bmi, age</p>
+      </div>
+      
+      <div id="batch-results" class="hidden"></div>
+      
+      <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+        <button onclick="closeBatchModal()" class="neumorphic-form button-link flex-1 !py-2 text-sm sm:text-base">
+          Cancel
+        </button>
+        <button onclick="processBatch()" class="neumorphic-form red flex-1 !py-2 text-sm sm:text-base">
+          Process
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function showAuthModal() {
+  document.getElementById('auth-modal').classList.remove('hidden');
+  document.getElementById('auth-modal').classList.add('flex');
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.add('hidden');
+  document.getElementById('auth-modal').classList.remove('flex');
+}
+
+document.getElementById('auth-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAuthModal();
+});
+
+let trendChart;
+
+async function loadDashboard() {
+  try {
+    const res = await fetch('/api/dashboard/stats');
+    const data = await res.json();
+    
+    if (data.error) {
+      if (data.error.includes('auth required')) {
+        showAuthModal();
+        return;
+      }
+      console.error(data.error);
+      return;
+    }
+
+    // Update stats cards
+    document.getElementById('total-predictions').textContent = data.total_predictions || 0;
+    document.getElementById('non-diabetic-count').textContent = data.prediction_breakdown['0'] || 0;
+    document.getElementById('diabetic-count').textContent = data.prediction_breakdown['1'] || 0;
+    
+    // Show admin-specific data
+    if (data.is_admin) {
+      document.getElementById('admin-stats').classList.remove('hidden');
+      document.getElementById('total-users').textContent = data.total_users || 0;
+    }
+
+    // Create trend chart
+    const ctx = document.getElementById('trend-chart').getContext('2d');
+    if (trendChart) trendChart.destroy();
+    
+    trendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.trend_data.map(d => d.date),
+        datasets: [{
+          label: 'Average Risk',
+          data: data.trend_data.map(d => d.risk * 100),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: { display: true, text: 'Risk Percentage' }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Failed to load dashboard:', error);
+  }
+}
+
+function showBatchUpload() {
+  document.getElementById('batchModal').classList.remove('hidden');
+  document.getElementById('batchModal').classList.add('flex');
+}
+
+function closeBatchModal() {
+  document.getElementById('batchModal').classList.add('hidden');
+  document.getElementById('batchModal').classList.remove('flex');
+}
+
+async function processBatch() {
+  const fileInput = document.getElementById('csv-file');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showAlert('Please select a CSV file', 'File Required', '📁');
+    return;
+  }
+
+  const text = await file.text();
+  const lines = text.split('\n').filter(line => line.trim());
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  
+  const predictions = [];
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',');
+    const row = {};
+    headers.forEach((header, idx) => {
+      row[header] = values[idx]?.trim();
+    });
+    
+    if (row.pregnancies && row.glucose && row.blood_pressure && row.insulin && row.bmi && row.age) {
+      predictions.push(row);
+    }
+  }
+
+  if (predictions.length === 0) {
+    showAlert('No valid data found in CSV', 'Invalid Data', '❌');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/batch-predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictions })
+    });
+    
+    const result = await res.json();
+    
+    if (result.error) {
+      showAlert(result.error, 'Error', '❌');
+      return;
+    }
+
+    document.getElementById('batch-results').innerHTML = `
+      <div class="p-4 bg-green-100 border border-green-300 rounded-lg">
+        <div class="text-green-800 font-semibold">✅ Success!</div>
+        <div class="text-green-700 text-sm">Successfully processed ${result.count} predictions!</div>
+        <div class="text-green-600 text-xs mt-1">Check your history to see the results.</div>
+      </div>
+    `;
+    document.getElementById('batch-results').classList.remove('hidden');
+    
+    // Refresh dashboard
+    setTimeout(() => {
+      loadDashboard();
+      closeBatchModal();
+    }, 2000);
+    
+  } catch (error) {
+    showAlert('Failed to process batch predictions', 'Error', '❌');
+  }
+}
+
+// Load dashboard on page load
+loadDashboard();
+</script>
+{% endblock %}

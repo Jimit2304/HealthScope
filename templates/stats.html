@@ -1,0 +1,520 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+  <!-- Header -->
+  <div class="text-center mb-6 sm:mb-8">
+    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center justify-center px-4">
+      <span class="text-3xl sm:text-4xl lg:text-5xl mr-2 sm:mr-3">📊</span>
+      Model Statistics
+    </h1>
+    <p class="text-sm sm:text-base lg:text-lg text-gray-600 px-4">Machine Learning Model Performance Metrics</p>
+  </div>
+
+  <!-- Model Metrics Cards -->
+  <div class="neumorphic-card">
+    <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+      <span class="text-xl sm:text-2xl mr-2">🎯</span>
+      Performance Metrics
+    </h3>
+    <div id="metrics" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+      <!-- Loading state -->
+      <div class="col-span-full text-center py-8 text-gray-500">
+        <div class="text-2xl mb-2">⏳</div>
+        Loading metrics...
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+    <!-- Confusion Matrix -->
+    <div class="neumorphic-card">
+      <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+        <span class="text-xl sm:text-2xl mr-2">🔢</span>
+        Confusion Matrix
+      </h3>
+      <div id="cm-container" class="overflow-x-auto">
+        <div class="text-center py-8 text-gray-500">
+          <div class="text-2xl mb-2">⏳</div>
+          Loading matrix...
+        </div>
+      </div>
+    </div>
+
+    <!-- ROC Curve -->
+    <div class="neumorphic-card">
+      <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+        <span class="text-xl sm:text-2xl mr-2">📈</span>
+        ROC Curve
+      </h3>
+      <div class="h-48 sm:h-64">
+        <canvas id="roc-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model Information -->
+  <div class="neumorphic-card">
+    <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+      <span class="text-xl sm:text-2xl mr-2">🤖</span>
+      Model Information
+    </h3>
+    <div id="model-info" class="text-gray-600">
+      <div class="text-center py-8 text-gray-500">
+        <div class="text-2xl mb-2">⏳</div>
+        Loading model info...
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature Statistics -->
+  <div class="neumorphic-card">
+    <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+      <span class="text-xl sm:text-2xl mr-2">📋</span>
+      Feature Standardization Stats
+    </h3>
+    <div id="feature-stats" class="text-gray-600">
+      <div class="text-center py-8 text-gray-500">
+        <div class="text-2xl mb-2">⏳</div>
+        Loading feature stats...
+      </div>
+    </div>
+  </div>
+
+  <!-- User Management -->
+  <div class="neumorphic-card">
+    <h3 class="text-lg sm:text-xl font-bold text-gray-700 mb-4 sm:mb-6 flex items-center">
+      <span class="text-xl sm:text-2xl mr-2">👥</span>
+      User Management
+    </h3>
+    <div id="user-management">
+      <div class="text-center py-8 text-gray-500">
+        <div class="text-2xl mb-2">⏳</div>
+        Loading users...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notification -->
+<div id="notification" class="fixed top-4 right-4 z-50 hidden transform translate-x-full transition-transform duration-300">
+  <div class="neumorphic-card !p-4 max-w-sm">
+    <div class="flex items-center space-x-3">
+      <div id="notificationIcon" class="text-2xl"></div>
+      <div>
+        <div id="notificationMessage" class="text-sm font-medium text-gray-800"></div>
+      </div>
+      <button onclick="hideNotification()" class="text-gray-400 hover:text-gray-600 ml-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function loadMetrics() {
+  try {
+    const res = await fetch('/api/metrics');
+    const data = await res.json();
+    const container = document.getElementById('metrics');
+    
+    if (data.error) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-8 text-red-600">
+          <div class="text-2xl mb-2">❌</div>
+          ${data.error}
+        </div>
+      `;
+      return;
+    }
+    
+    const items = [
+      { k: 'Accuracy', v: data.accuracy, icon: '🎯', color: 'blue' },
+      { k: 'Precision', v: data.precision, icon: '🔍', color: 'green' },
+      { k: 'Recall', v: data.recall, icon: '📊', color: 'purple' },
+      { k: 'F1 Score', v: data.f1, icon: '⚖️', color: 'indigo' },
+      { k: 'ROC AUC', v: data.roc_auc, icon: '📈', color: 'orange' },
+    ];
+    
+    container.innerHTML = items.map(it => `
+      <div class="neumorphic-card text-center !p-3 sm:!p-4">
+        <div class="text-2xl sm:text-3xl mb-2">${it.icon}</div>
+        <div class="text-xs sm:text-sm font-medium text-gray-600 mb-1">${it.k}</div>
+        <div class="text-xl sm:text-2xl font-bold text-${it.color}-600">${(it.v * 100).toFixed(1)}%</div>
+      </div>
+    `).join('');
+  } catch (error) {
+    document.getElementById('metrics').innerHTML = `
+      <div class="col-span-full text-center py-8 text-red-600">
+        <div class="text-2xl mb-2">⚠️</div>
+        Failed to load metrics
+      </div>
+    `;
+  }
+}
+
+async function loadModelInfo() {
+  try {
+    const res = await fetch('/api/model-info');
+    const data = await res.json();
+    const infoDiv = document.getElementById('model-info');
+    
+    if (data.error) {
+      infoDiv.innerHTML = `
+        <div class="text-center py-8 text-red-600">
+          <div class="text-2xl mb-2">❌</div>
+          ${data.error}
+        </div>
+      `;
+      return;
+    }
+
+    const features = data.features || [];
+    const coef = data.coef || [];
+    
+    const rows = features.map((f, i) => `
+      <tr class="border-b border-gray-100 hover:bg-gray-50">
+        <td class="py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">${f}</td>
+        <td class="py-2 sm:py-3 px-2 sm:px-4 text-gray-600 font-mono text-xs sm:text-sm">${(coef[i] || 0).toFixed(4)}</td>
+      </tr>
+    `).join('');
+
+    infoDiv.innerHTML = `
+      <div class="mb-4 sm:mb-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg sm:text-xl">🤖</span>
+          <span class="font-semibold text-gray-700 text-sm sm:text-base">Algorithm:</span>
+          <span class="font-medium text-indigo-600 text-sm sm:text-base">${data.algorithm}</span>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="py-2 sm:py-3 px-2 sm:px-4 text-left font-semibold text-gray-700 text-xs sm:text-sm">Feature</th>
+              <th class="py-2 sm:py-3 px-2 sm:px-4 text-left font-semibold text-gray-700 text-xs sm:text-sm">Coefficient</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+
+    // Feature stats
+    const means = data.feature_means || {};
+    const stds = data.feature_stds || {};
+    const fsDiv = document.getElementById('feature-stats');
+    
+    const fsRows = features.map(f => `
+      <tr class="border-b border-gray-100 hover:bg-gray-50">
+        <td class="py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">${f}</td>
+        <td class="py-2 sm:py-3 px-2 sm:px-4 text-gray-600 font-mono text-xs sm:text-sm">${Number(means[f] ?? 0).toFixed(3)}</td>
+        <td class="py-2 sm:py-3 px-2 sm:px-4 text-gray-600 font-mono text-xs sm:text-sm">${Number(stds[f] ?? 0).toFixed(3)}</td>
+      </tr>
+    `).join('');
+    
+    fsDiv.innerHTML = `
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="py-2 sm:py-3 px-2 sm:px-4 text-left font-semibold text-gray-700 text-xs sm:text-sm">Feature</th>
+              <th class="py-2 sm:py-3 px-2 sm:px-4 text-left font-semibold text-gray-700 text-xs sm:text-sm">Mean</th>
+              <th class="py-2 sm:py-3 px-2 sm:px-4 text-left font-semibold text-gray-700 text-xs sm:text-sm">Std Dev</th>
+            </tr>
+          </thead>
+          <tbody>${fsRows}</tbody>
+        </table>
+      </div>
+    `;
+  } catch (error) {
+    document.getElementById('model-info').innerHTML = `
+      <div class="text-center py-8 text-red-600">
+        <div class="text-2xl mb-2">⚠️</div>
+        Failed to load model info
+      </div>
+    `;
+  }
+}
+
+async function loadDiagnostics() {
+  try {
+    const res = await fetch('/api/diagnostics');
+    const data = await res.json();
+    
+    if (data.error) return;
+    
+    // Confusion matrix
+    const cm = data.confusion_matrix || [[0, 0], [0, 0]];
+    const cmDiv = document.getElementById('cm-container');
+    
+    cmDiv.innerHTML = `
+      <table class="w-full">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="py-3 px-4 text-left font-semibold text-gray-700"></th>
+            <th class="py-3 px-4 text-center font-semibold text-gray-700">Predicted Non-Diabetic</th>
+            <th class="py-3 px-4 text-center font-semibold text-gray-700">Predicted Diabetic</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-100">
+            <td class="py-3 px-4 font-medium text-gray-900">Actual Non-Diabetic</td>
+            <td class="py-3 px-4 text-center text-green-600 font-bold">${cm[0][0]}</td>
+            <td class="py-3 px-4 text-center text-red-600 font-bold">${cm[0][1]}</td>
+          </tr>
+          <tr class="border-b border-gray-100">
+            <td class="py-3 px-4 font-medium text-gray-900">Actual Diabetic</td>
+            <td class="py-3 px-4 text-center text-red-600 font-bold">${cm[1][0]}</td>
+            <td class="py-3 px-4 text-center text-green-600 font-bold">${cm[1][1]}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    // ROC chart
+    const fpr = data.roc?.fpr || [];
+    const tpr = data.roc?.tpr || [];
+    const ctx = document.getElementById('roc-chart').getContext('2d');
+    
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: fpr,
+        datasets: [
+          {
+            label: 'ROC Curve',
+            data: tpr,
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            pointRadius: 0,
+            tension: 0.1,
+            fill: true
+          },
+          {
+            label: 'Random Chance',
+            data: fpr,
+            borderColor: '#94a3b8',
+            backgroundColor: 'transparent',
+            pointRadius: 0,
+            borderDash: [6, 4]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'linear',
+            min: 0,
+            max: 1,
+            title: { display: true, text: 'False Positive Rate' }
+          },
+          y: {
+            min: 0,
+            max: 1,
+            title: { display: true, text: 'True Positive Rate' }
+          }
+        },
+        plugins: {
+          legend: { display: true, position: 'bottom' }
+        }
+      }
+    });
+  } catch (error) {
+    document.getElementById('cm-container').innerHTML = `
+      <div class="text-center py-8 text-red-600">
+        <div class="text-2xl mb-2">⚠️</div>
+        Failed to load diagnostics
+      </div>
+    `;
+  }
+}
+
+async function loadUsers() {
+  try {
+    const res = await fetch('/api/users');
+    const data = await res.json();
+    const container = document.getElementById('user-management');
+    
+    if (data.error) {
+      container.innerHTML = `
+        <div class="text-center py-8 text-red-600">
+          <div class="text-2xl mb-2">❌</div>
+          ${data.error}
+        </div>
+      `;
+      return;
+    }
+    
+    const users = data.users || [];
+    
+    if (users.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8 text-gray-500">
+          <div class="text-2xl mb-2">👤</div>
+          No users found
+        </div>
+      `;
+      return;
+    }
+    
+    const userRows = users.map(user => `
+      <tr class="border-b border-gray-100 hover:bg-gray-50">
+        <td class="py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">${user.username}</td>
+        <td class="py-2 sm:py-3 px-2 sm:px-4">
+          <span class="px-2 py-1 text-xs font-medium rounded-full ${
+            user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+          }">
+            ${user.role === 'admin' ? '👑 Admin' : '👤 User'}
+          </span>
+        </td>
+        <td class="py-2 sm:py-3 px-2 sm:px-4">
+          <button onclick="deleteUser(${user.id}, '${user.username}')" 
+                  class="px-2 sm:px-3 py-1 bg-red-500 text-white text-xs sm:text-sm rounded hover:bg-red-600 transition-colors">
+            <span class="sm:hidden">🗑️</span>
+            <span class="hidden sm:inline">🗑️ Delete</span>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+    
+    container.innerHTML = `
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="py-2 sm:py-3 px-2 sm:px-4 text-left font-semibold text-gray-700 text-xs sm:text-sm">Username</th>
+              <th class="py-2 sm:py-3 px-2 sm:px-4 text-left font-semibold text-gray-700 text-xs sm:text-sm">Role</th>
+              <th class="py-2 sm:py-3 px-2 sm:px-4 text-left font-semibold text-gray-700 text-xs sm:text-sm">Actions</th>
+            </tr>
+          </thead>
+          <tbody>${userRows}</tbody>
+        </table>
+      </div>
+    `;
+  } catch (error) {
+    document.getElementById('user-management').innerHTML = `
+      <div class="text-center py-8 text-red-600">
+        <div class="text-2xl mb-2">⚠️</div>
+        Failed to load users
+      </div>
+    `;
+  }
+}
+
+async function deleteUser(userId, username) {
+  showNotification(`Deleting user "${username}"...`, 'info');
+  showDeleteUserDialog(username, async () => {
+    try {
+      const res = await fetch(`/api/user/${userId}`, { 
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        showNotification(`User "${username}" deleted successfully`, 'success');
+        loadUsers();
+      } else {
+        showNotification('Error: ' + (data.error || 'Unknown error'), 'error');
+      }
+    } catch (error) {
+      showNotification('Failed to delete user. Please try again.', 'error');
+    }
+  });
+}
+
+function showDeleteUserDialog(username, onConfirm) {
+  const dialog = document.createElement('div');
+  dialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  dialog.innerHTML = `
+    <div class="neumorphic-card max-w-md w-full bg-white">
+      <div class="p-6">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+            <span class="text-2xl">👤</span>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">Delete User</h3>
+        </div>
+        <p class="text-gray-600 mb-4">Are you sure you want to delete user <strong>"${username}"</strong>?</p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+          <div class="flex items-start">
+            <span class="text-yellow-500 mr-2">⚠️</span>
+            <div class="text-sm text-yellow-700">
+              <p class="font-medium mb-1">This action will:</p>
+              <ul class="list-disc list-inside space-y-1">
+                <li>Permanently remove the user account</li>
+                <li>Set their predictions to anonymous</li>
+                <li>Cannot be undone</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="flex space-x-3">
+          <button class="cancel-btn flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+            Cancel
+          </button>
+          <button class="confirm-btn flex-1 bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors">
+            Delete User
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  dialog.querySelector('.cancel-btn').onclick = () => dialog.remove();
+  dialog.querySelector('.confirm-btn').onclick = () => {
+    dialog.remove();
+    onConfirm();
+  };
+  
+  document.body.appendChild(dialog);
+}
+
+function showNotification(message, type = 'info') {
+  const notification = document.getElementById('notification');
+  const icon = document.getElementById('notificationIcon');
+  const messageEl = document.getElementById('notificationMessage');
+  
+  if (type === 'success') {
+    icon.textContent = '✅';
+  } else if (type === 'error') {
+    icon.textContent = '❌';
+  } else {
+    icon.textContent = 'ℹ️';
+  }
+  
+  messageEl.textContent = message;
+  
+  notification.classList.remove('hidden');
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+  }, 10);
+  
+  setTimeout(() => {
+    hideNotification();
+  }, 3000);
+}
+
+function hideNotification() {
+  const notification = document.getElementById('notification');
+  notification.style.transform = 'translateX(100%)';
+  setTimeout(() => {
+    notification.classList.add('hidden');
+  }, 300);
+}
+
+// Load all data
+loadMetrics();
+loadModelInfo();
+loadDiagnostics();
+loadUsers();
+</script>
+{% endblock %}

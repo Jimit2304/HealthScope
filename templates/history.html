@@ -1,0 +1,789 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="neumorphic-card mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
+        <span class="text-3xl sm:text-4xl mr-2 sm:mr-3">📋</span>
+        Prediction History
+      </h1>
+      <a href="/api/export/history" class="neumorphic-form button-link !px-3 sm:!px-4 !py-2 !rounded-full text-xs sm:text-sm">
+        📊 Export CSV
+      </a>
+    </div>
+    
+    <!-- Modern Filters -->
+    <div class="neumorphic-card mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+          <span class="text-2xl mr-3">🔍</span>
+          Smart Filters
+        </h3>
+        <button onclick="clearAllFilters()" class="text-sm text-gray-500 hover:text-red-500 transition-colors flex items-center">
+          <span class="mr-1">🗑️</span> Clear All
+        </button>
+      </div>
+      
+      <!-- Responsive Filter Container -->
+      <div class="space-y-4 md:space-y-0">
+        <!-- Desktop: Single Row Layout -->
+        <div class="hidden md:grid md:grid-cols-12 md:gap-4 md:items-end">
+          <!-- User Filter (Admin Only) -->
+          <div id="user-search-section-desktop" class="col-span-3" style="display: none;">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+              <span class="mr-2">👤</span> User
+            </label>
+            <select id="user-filter-desktop" class="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+              <option value="">All Users</option>
+            </select>
+          </div>
+          
+          <!-- Risk Level Filter -->
+          <div class="col-span-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+              <span class="mr-2">⚠️</span> Risk Level
+            </label>
+            <div class="flex gap-1">
+              <button onclick="setRiskFilter('')" id="risk-all-desktop" class="risk-pill active px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 bg-blue-500 text-white shadow-md">
+                All
+              </button>
+              <button onclick="setRiskFilter('low')" id="risk-low-desktop" class="risk-pill px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 bg-green-100 text-green-700 hover:bg-green-200">
+                🟢 Low
+              </button>
+              <button onclick="setRiskFilter('moderate')" id="risk-moderate-desktop" class="risk-pill px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 bg-yellow-100 text-yellow-700 hover:bg-yellow-200">
+                🟡 Moderate
+              </button>
+              <button onclick="setRiskFilter('high')" id="risk-high-desktop" class="risk-pill px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200">
+                🔴 High
+              </button>
+            </div>
+          </div>
+          
+          <!-- Time Period Filter -->
+          <div class="col-span-5">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+              <span class="mr-2">📅</span> Time Period
+            </label>
+            <div class="flex gap-1">
+              <button onclick="setDateFilter('')" id="date-all-desktop" class="date-pill active px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 bg-blue-500 text-white shadow-md">
+                All Time
+              </button>
+              <button onclick="setDateFilter('today')" id="date-today-desktop" class="date-pill px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200">
+                Today
+              </button>
+              <button onclick="setDateFilter('week')" id="date-week-desktop" class="date-pill px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 bg-purple-100 text-purple-700 hover:bg-purple-200">
+                7 Days
+              </button>
+              <button onclick="setDateFilter('month')" id="date-month-desktop" class="date-pill px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+                30 Days
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mobile/Tablet: Stacked Layout -->
+        <div class="md:hidden space-y-4">
+          <!-- User Filter (Admin Only) -->
+          <div id="user-search-section-mobile" style="display: none;">
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+              <span class="mr-2">👤</span> User
+            </label>
+            <select id="user-filter-mobile" class="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+              <option value="">All Users</option>
+            </select>
+          </div>
+          
+          <!-- Risk Level Filter -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+              <span class="mr-2">⚠️</span> Risk Level
+            </label>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="setRiskFilter('')" id="risk-all-mobile" class="risk-pill active px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-blue-500 text-white shadow-md">
+                All Levels
+              </button>
+              <button onclick="setRiskFilter('low')" id="risk-low-mobile" class="risk-pill px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-green-100 text-green-700 hover:bg-green-200">
+                🟢 Low
+              </button>
+              <button onclick="setRiskFilter('moderate')" id="risk-moderate-mobile" class="risk-pill px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-yellow-100 text-yellow-700 hover:bg-yellow-200">
+                🟡 Moderate
+              </button>
+              <button onclick="setRiskFilter('high')" id="risk-high-mobile" class="risk-pill px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-red-100 text-red-700 hover:bg-red-200">
+                🔴 High
+              </button>
+            </div>
+          </div>
+          
+          <!-- Time Period Filter -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+              <span class="mr-2">📅</span> Time Period
+            </label>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="setDateFilter('')" id="date-all-mobile" class="date-pill active px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-blue-500 text-white shadow-md">
+                All Time
+              </button>
+              <button onclick="setDateFilter('today')" id="date-today-mobile" class="date-pill px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200">
+                Today
+              </button>
+              <button onclick="setDateFilter('week')" id="date-week-mobile" class="date-pill px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-purple-100 text-purple-700 hover:bg-purple-200">
+                7 Days
+              </button>
+              <button onclick="setDateFilter('month')" id="date-month-mobile" class="date-pill px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+                30 Days
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Filter Status -->
+      <div id="filter-status" class="mt-4 text-sm text-gray-600 hidden">
+        <span class="font-medium">Active filters:</span> <span id="active-filters"></span>
+      </div>
+    </div>
+    
+    <div id="admin-note" class="text-xs sm:text-sm text-gray-600"></div>
+  </div>
+
+  <!-- History Table -->
+  <div class="neumorphic-card">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="text-left py-2 sm:py-4 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">📅 Date</th>
+            <th class="text-left py-2 sm:py-4 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm hidden sm:table-cell">👤 User</th>
+            <th class="text-left py-2 sm:py-4 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">📊 Metrics</th>
+            <th class="text-left py-2 sm:py-4 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm hidden lg:table-cell">⚠️ Risk</th>
+            <th class="text-left py-2 sm:py-4 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">📈 Level</th>
+            <th class="text-left py-2 sm:py-4 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">🗑️</th>
+          </tr>
+        </thead>
+        <tbody id="history-body" class="divide-y divide-gray-100">
+          <!-- Loading state -->
+          <tr>
+            <td colspan="6" class="text-center py-8 text-gray-500">
+              <div class="text-2xl mb-2">⏳</div>
+              Loading history...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-8 sm:py-12">
+      <div class="text-4xl sm:text-6xl mb-3 sm:mb-4">📝</div>
+      <h3 class="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No Predictions Yet</h3>
+      <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 px-4">Start by creating your first diabetes risk assessment</p>
+      <a href="/" class="neumorphic-form button-link !px-4 sm:!px-6 !py-2 sm:!py-3 text-sm sm:text-base">
+        🔍 New Prediction
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Required Modal -->
+<div id="auth-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 p-4">
+  <div class="neumorphic-card max-w-md w-full mx-4 bg-white relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full opacity-50 -translate-y-16 translate-x-16"></div>
+    <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-100 to-yellow-100 rounded-full opacity-40 translate-y-12 -translate-x-12"></div>
+    <div class="relative z-10 p-4 sm:p-6 lg:p-8 text-center">
+      <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+      </div>
+      <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">Authentication Required</h3>
+      <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 leading-relaxed">Please log in to access your prediction history and health data.</p>
+      <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <a href="/login" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base">
+          <span>🔐</span><span>Login</span>
+        </a>
+        <a href="/register" class="flex-1 bg-gray-100 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base">
+          <span>✨</span><span>Register</span>
+        </a>
+      </div>
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Health Details Modal -->
+<div id="healthModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+  <div id="modalContent" class="neumorphic-card max-w-lg w-full mx-4 bg-white" style="box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+    <div class="flex justify-between items-center mb-4 sm:mb-6">
+      <h3 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center">
+        <span class="text-xl sm:text-2xl mr-2">📊</span>
+        Health Metrics Details
+      </h3>
+      <button onclick="closeHealthModal()" class="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl">&times;</button>
+    </div>
+    
+    <div id="health-details" class="space-y-3 sm:space-y-4">
+      <!-- Details will be populated here -->
+    </div>
+    
+    <div class="text-center mt-4 sm:mt-6">
+      <button onclick="closeHealthModal()" class="neumorphic-form button-link !px-4 sm:!px-6 !py-2 text-sm sm:text-base">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Click Position Popup -->
+<div id="clickPopup" class="fixed bg-gradient-to-br from-white to-blue-50 border-2 border-blue-200 rounded-xl shadow-2xl p-4 sm:p-6 z-50 hidden" style="min-width: 280px; max-width: 90vw; backdrop-filter: blur(50px);">
+  <div id="popup-content"></div>
+  <button onclick="document.getElementById('clickPopup').classList.add('hidden')" class="mt-3 sm:mt-4 w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs sm:text-sm font-medium py-2 px-3 sm:px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md">✕ Close</button>
+</div>
+
+<!-- Top Notification -->
+<div id="topNotification" class="fixed top-4 right-4 z-50 hidden transform translate-x-full transition-transform duration-300">
+  <div class="neumorphic-card !p-3 sm:!p-4 max-w-xs sm:max-w-sm">
+    <div class="flex items-center space-x-2 sm:space-x-3">
+      <div id="notificationIcon" class="text-lg sm:text-2xl"></div>
+      <div class="flex-1">
+        <div id="notificationMessage" class="text-xs sm:text-sm font-medium text-gray-800"></div>
+      </div>
+      <button onclick="hideTopNotification()" class="text-gray-400 hover:text-gray-600 ml-1 sm:ml-2">
+        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showAuthModal() {
+  document.getElementById('auth-modal').classList.remove('hidden');
+  document.getElementById('auth-modal').classList.add('flex');
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.add('hidden');
+  document.getElementById('auth-modal').classList.remove('flex');
+}
+
+document.getElementById('auth-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAuthModal();
+});
+
+let allHistoryData = [];
+let isAdmin = false;
+
+function showHealthPopup(event, inputs) {
+  event.stopPropagation();
+  const popup = document.getElementById('clickPopup');
+  const content = document.getElementById('popup-content');
+  const button = event.target.closest('button');
+  const rect = button.getBoundingClientRect();
+  
+  content.innerHTML = `
+    <div class="text-center mb-4">
+      <h4 class="text-lg font-bold text-gray-800 flex items-center justify-center">
+        <span class="text-2xl mr-2">📊</span>
+        Health Metrics
+      </h4>
+      <div class="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mt-2"></div>
+    </div>
+    <div class="grid grid-cols-2 gap-3 text-sm">
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-xs font-medium">🩸 Glucose</div>
+        <div class="font-bold text-gray-800">${inputs?.Glucose || 'N/A'} mg/dL</div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-xs font-medium">⚖️ BMI</div>
+        <div class="font-bold text-gray-800">${inputs?.BMI || 'N/A'}</div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-xs font-medium">🎂 Age</div>
+        <div class="font-bold text-gray-800">${inputs?.Age || 'N/A'} years</div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-xs font-medium">💓 BP</div>
+        <div class="font-bold text-gray-800">${inputs?.BloodPressure || 'N/A'} mmHg</div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-xs font-medium">🤰 Pregnancies</div>
+        <div class="font-bold text-gray-800">${inputs?.Pregnancies || 'N/A'}</div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-xs font-medium">💉 Insulin</div>
+        <div class="font-bold text-gray-800">${inputs?.Insulin || 'N/A'} μU/mL</div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 col-span-2">
+        <div class="text-gray-500 text-xs font-medium">👨‍👩‍👧‍👦 Family Diabetes</div>
+        <div class="font-bold text-gray-800">${inputs?.FamilyDiabetes || 'N/A'} members</div>
+      </div>
+    </div>
+  `;
+  
+  // Responsive positioning
+  if (window.innerWidth < 640) {
+    popup.style.left = '50%';
+    popup.style.transform = 'translateX(-50%)';
+    popup.style.top = rect.bottom + window.scrollY + 10 + 'px';
+    popup.style.minWidth = '280px';
+    popup.style.maxWidth = '90vw';
+  } else {
+    popup.style.left = '45%';
+    popup.style.transform = 'translateX(-55%)';
+    popup.style.top = rect.top + window.scrollY - 90 + 'px';
+  }
+  popup.classList.remove('hidden');
+}
+
+function hidePopup() {
+  document.getElementById('clickPopup').classList.add('hidden');
+}
+
+// Hide popup when clicking elsewhere
+document.addEventListener('click', function(event) {
+  const popup = document.getElementById('clickPopup');
+  if (!popup.contains(event.target)) {
+    hidePopup();
+  }
+});
+
+async function loadHistory() {
+  try {
+    const res = await fetch("/api/history");
+    const data = await res.json();
+    
+    if (data.error) {
+      if (data.error.includes('auth required')) {
+        showAuthModal();
+        return;
+      }
+      document.getElementById("history-body").innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center py-8 text-red-600">
+            <div class="text-2xl mb-2">❌</div>
+            ${data.error}
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    
+    // Store admin status
+    isAdmin = data.is_admin;
+    
+    // Update admin note
+    document.getElementById('admin-note').textContent = isAdmin ? 
+      '👑 Admin: Showing all users\' predictions' : 
+      '👤 Showing your predictions only';
+    
+    // Show/hide user filter based on admin status
+    const userSearchSectionDesktop = document.getElementById('user-search-section-desktop');
+    const userSearchSectionMobile = document.getElementById('user-search-section-mobile');
+    
+    if (isAdmin) {
+      userSearchSectionDesktop.style.display = 'block';
+      userSearchSectionMobile.style.display = 'block';
+    } else {
+      userSearchSectionDesktop.style.display = 'none';
+      userSearchSectionMobile.style.display = 'none';
+    }
+    
+    // Store data for filtering
+    allHistoryData = data.items || [];
+    
+    // Render table
+    renderTable(allHistoryData);
+    
+    // Initialize filters after everything is loaded
+    initializeFilters();
+    
+  } catch (error) {
+    document.getElementById("history-body").innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center py-8 text-red-600">
+          <div class="text-2xl mb-2">⚠️</div>
+          Failed to load history
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function renderTable(data) {
+  if (!data || data.length === 0) {
+    document.getElementById("history-body").innerHTML = '';
+    document.getElementById("empty-state").classList.remove('hidden');
+    return;
+  }
+  
+  document.getElementById("empty-state").classList.add('hidden');
+  
+  document.getElementById("history-body").innerHTML = data.map(r => {
+    const riskLevel = r.probability > 0.66 ? 'High' : r.probability > 0.33 ? 'Moderate' : 'Low';
+    const riskColor = r.probability > 0.66 ? 'red' : r.probability > 0.33 ? 'yellow' : 'green';
+    const riskEmoji = r.probability > 0.66 ? '🔴' : r.probability > 0.33 ? '🟡' : '🟢';
+    
+    return `
+      <tr class="hover:bg-gray-50 transition-colors">
+        <td class="py-2 sm:py-4 px-2 sm:px-4">
+          <div class="text-xs sm:text-sm font-medium text-gray-900">${new Date(r.created_at).toLocaleDateString()}</div>
+          <div class="text-xs text-gray-500 hidden sm:block">${new Date(r.created_at).toLocaleTimeString()}</div>
+          <div class="sm:hidden text-xs text-gray-500">${new Date(r.created_at).toLocaleTimeString().slice(0,5)}</div>
+        </td>
+        <td class="py-2 sm:py-4 px-2 sm:px-4 hidden sm:table-cell">
+          <div class="flex items-center">
+            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3">
+              ${(r.username || 'U').charAt(0).toUpperCase()}
+            </div>
+            <span class="text-xs sm:text-sm font-medium text-gray-900">${r.username || 'Unknown'}</span>
+          </div>
+        </td>
+        <td class="py-2 sm:py-4 px-2 sm:px-4">
+          <button onclick="showHealthPopup(event, ${JSON.stringify(r.inputs).replace(/"/g, '&quot;')})" class="text-xs space-y-1 hover:bg-gray-100 p-1 sm:p-2 rounded-lg transition-colors w-full text-left">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Glucose:</span>
+              <span class="font-medium">${r.inputs?.Glucose || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">BMI:</span>
+              <span class="font-medium">${r.inputs?.BMI || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between sm:hidden">
+              <span class="text-gray-600">User:</span>
+              <span class="font-medium">${r.username || 'Unknown'}</span>
+            </div>
+            <div class="text-center mt-1 sm:mt-2 text-blue-600 text-xs">Tap for details</div>
+          </button>
+        </td>
+        <td class="py-2 sm:py-4 px-2 sm:px-4 hidden lg:table-cell">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">${riskEmoji}</span>
+            <div>
+              <div class="text-sm font-semibold text-${riskColor}-600">${riskLevel} Risk</div>
+              <div class="text-xs text-gray-500">${r.prediction ? 'Diabetic' : 'Non-Diabetic'}</div>
+            </div>
+          </div>
+        </td>
+        <td class="py-2 sm:py-4 px-2 sm:px-4">
+          <div class="flex flex-col lg:flex-row items-start lg:items-center space-y-1 lg:space-y-0 lg:space-x-2">
+            <span class="text-base sm:text-lg lg:hidden">${riskEmoji}</span>
+            <div class="w-12 sm:w-16 bg-gray-200 rounded-full h-2">
+              <div class="bg-${riskColor}-500 h-2 rounded-full" style="width: ${(r.probability * 100).toFixed(0)}%"></div>
+            </div>
+            <span class="text-xs sm:text-sm font-medium text-gray-900">${(r.probability * 100).toFixed(1)}%</span>
+            <div class="lg:hidden text-xs text-gray-500">${r.prediction ? 'Diabetic' : 'Non-Diabetic'}</div>
+          </div>
+        </td>
+        <td class="py-2 sm:py-4 px-2 sm:px-4">
+          <button onclick="deletePrediction(${r.id})" class="bg-red-500 hover:bg-red-600 text-white px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm transition-colors">
+            <span class="sm:hidden">🗑️</span>
+            <span class="hidden sm:inline">🗑️ Delete</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+let currentRiskFilter = '';
+let currentDateFilter = '';
+
+function setRiskFilter(value) {
+  currentRiskFilter = value;
+  document.querySelectorAll('.risk-pill').forEach(btn => {
+    btn.classList.remove('active', 'bg-blue-500', 'text-white', 'shadow-md');
+    btn.classList.add('bg-gray-100', 'text-gray-700');
+  });
+  // Update both desktop and mobile buttons
+  const activeBtnDesktop = document.getElementById(`risk-${value || 'all'}-desktop`);
+  const activeBtnMobile = document.getElementById(`risk-${value || 'all'}-mobile`);
+  
+  [activeBtnDesktop, activeBtnMobile].forEach(btn => {
+    if (btn) {
+      btn.classList.remove('bg-gray-100', 'text-gray-700');
+      btn.classList.add('active', 'bg-blue-500', 'text-white', 'shadow-md');
+    }
+  });
+  applyFilters();
+}
+
+function setDateFilter(value) {
+  currentDateFilter = value;
+  document.querySelectorAll('.date-pill').forEach(btn => {
+    btn.classList.remove('active', 'bg-blue-500', 'text-white', 'shadow-md');
+    btn.classList.add('bg-gray-100', 'text-gray-700');
+  });
+  // Update both desktop and mobile buttons
+  const activeBtnDesktop = document.getElementById(`date-${value || 'all'}-desktop`);
+  const activeBtnMobile = document.getElementById(`date-${value || 'all'}-mobile`);
+  
+  [activeBtnDesktop, activeBtnMobile].forEach(btn => {
+    if (btn) {
+      btn.classList.remove('bg-gray-100', 'text-gray-700');
+      btn.classList.add('active', 'bg-blue-500', 'text-white', 'shadow-md');
+    }
+  });
+  applyFilters();
+}
+
+function clearAllFilters() {
+  if (isAdmin) {
+    const userFilterDesktop = document.getElementById('user-filter-desktop');
+    const userFilterMobile = document.getElementById('user-filter-mobile');
+    if (userFilterDesktop) userFilterDesktop.value = '';
+    if (userFilterMobile) userFilterMobile.value = '';
+  }
+  setRiskFilter('');
+  setDateFilter('');
+}
+
+function updateFilterStatus() {
+  const userFilterDesktop = isAdmin ? document.getElementById('user-filter-desktop') : null;
+  const userFilterMobile = isAdmin ? document.getElementById('user-filter-mobile') : null;
+  const userFilter = userFilterDesktop ? userFilterDesktop.value : (userFilterMobile ? userFilterMobile.value : '');
+  const activeFilters = [];
+  
+  if (isAdmin && userFilter) activeFilters.push(`User: "${userFilter}"`);
+  if (currentRiskFilter) activeFilters.push(`Risk: ${currentRiskFilter}`);
+  if (currentDateFilter) activeFilters.push(`Period: ${currentDateFilter}`);
+  
+  const statusDiv = document.getElementById('filter-status');
+  const filtersSpan = document.getElementById('active-filters');
+  
+  if (activeFilters.length > 0) {
+    filtersSpan.textContent = activeFilters.join(', ');
+    statusDiv.classList.remove('hidden');
+  } else {
+    statusDiv.classList.add('hidden');
+  }
+}
+
+function applyFilters() {
+  const userFilterDesktop = isAdmin ? document.getElementById('user-filter-desktop') : null;
+  const userFilterMobile = isAdmin ? document.getElementById('user-filter-mobile') : null;
+  const userFilter = userFilterDesktop ? userFilterDesktop.value : (userFilterMobile ? userFilterMobile.value : '');
+  const riskFilter = currentRiskFilter;
+  const dateFilter = currentDateFilter;
+  
+  updateFilterStatus();
+  
+  let filtered = allHistoryData.filter(item => {
+    // User filter (only if admin)
+    if (isAdmin && userFilter && item.username !== userFilter) {
+      return false;
+    }
+    
+    // Risk filter
+    if (riskFilter) {
+      const riskLevel = item.probability > 0.66 ? 'high' : item.probability > 0.33 ? 'moderate' : 'low';
+      if (riskLevel !== riskFilter) return false;
+    }
+    
+    // Date filter
+    if (dateFilter) {
+      const itemDate = new Date(item.created_at);
+      const now = new Date();
+      const daysDiff = (now - itemDate) / (1000 * 60 * 60 * 24);
+      
+      if (dateFilter === 'today' && daysDiff > 1) return false;
+      if (dateFilter === 'week' && daysDiff > 7) return false;
+      if (dateFilter === 'month' && daysDiff > 30) return false;
+    }
+    
+    return true;
+  });
+  
+  renderTable(filtered);
+}
+
+// Add event listeners (will be set up after admin status is determined)
+function setupEventListeners() {
+  if (isAdmin) {
+    const userFilterDesktop = document.getElementById('user-filter-desktop');
+    const userFilterMobile = document.getElementById('user-filter-mobile');
+    if (userFilterDesktop) userFilterDesktop.addEventListener('change', applyFilters);
+    if (userFilterMobile) userFilterMobile.addEventListener('change', applyFilters);
+  }
+}
+
+// Call this after loadHistory completes
+function initializeFilters() {
+  setupEventListeners();
+  if (isAdmin) {
+    populateUserDropdown();
+  }
+}
+
+function populateUserDropdown() {
+  const userFilterDesktop = document.getElementById('user-filter-desktop');
+  const userFilterMobile = document.getElementById('user-filter-mobile');
+  const users = [...new Set(allHistoryData.map(item => item.username).filter(u => u))].sort();
+  
+  [userFilterDesktop, userFilterMobile].forEach(userFilter => {
+    if (userFilter) {
+      userFilter.innerHTML = '<option value="">All Users</option>';
+      users.forEach(username => {
+        const option = document.createElement('option');
+        option.value = username;
+        option.textContent = username;
+        userFilter.appendChild(option);
+      });
+    }
+  });
+}
+
+function showHealthDetails(inputs, clickedElement) {
+  const details = [
+    { icon: '🤱', label: 'Pregnancies', value: inputs?.Pregnancies || 'N/A', unit: '' },
+    { icon: '🩸', label: 'Glucose Level', value: inputs?.Glucose || 'N/A', unit: 'mg/dL' },
+    { icon: '💓', label: 'Blood Pressure', value: inputs?.BloodPressure || 'N/A', unit: 'mmHg' },
+    { icon: '💉', label: 'Insulin Level', value: inputs?.Insulin || 'N/A', unit: 'μU/mL' },
+    { icon: '⚖️', label: 'Body Mass Index', value: inputs?.BMI || 'N/A', unit: 'BMI' },
+    { icon: '🎂', label: 'Age', value: inputs?.Age || 'N/A', unit: 'years' },
+    { icon: '👨‍👩‍👧‍👦', label: 'Family Diabetes', value: inputs?.FamilyDiabetes || 'N/A', unit: 'members' }
+  ];
+  
+  document.getElementById('health-details').innerHTML = `
+    <div class="grid grid-cols-2 gap-4">
+      ${details.map(item => `
+        <div class="neumorphic-card !p-3 flex items-center space-x-3">
+          <div class="text-2xl">${item.icon}</div>
+          <div class="flex-1">
+            <div class="font-semibold text-gray-700 text-sm">${item.label}</div>
+            <div class="text-lg font-bold text-indigo-600">${item.value} ${item.unit}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  const modal = document.getElementById('healthModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeHealthModal() {
+  const modal = document.getElementById('healthModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+// Close modal when clicking outside
+document.getElementById('healthModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeHealthModal();
+  }
+});
+
+async function deletePrediction(predictionId) {
+  console.log('Delete prediction called for ID:', predictionId);
+  showConfirmDialog(
+    'Delete Prediction',
+    'Are you sure you want to permanently remove this prediction from the database? This action cannot be undone.',
+    async () => {
+      console.log('Confirmed delete for ID:', predictionId);
+      try {
+        const response = await fetch(`/api/prediction/${predictionId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('Delete response status:', response.status);
+        
+        if (response.ok) {
+          showTopNotification('Prediction deleted successfully', 'success');
+          loadHistory();
+        } else {
+          const error = await response.json();
+          console.log('Delete error:', error);
+          showTopNotification('Failed to delete: ' + (error.error || 'Unknown error'), 'error');
+        }
+      } catch (error) {
+        console.log('Delete exception:', error);
+        showTopNotification('Failed to delete prediction', 'error');
+      }
+    }
+  );
+}
+
+function showConfirmDialog(title, message, onConfirm) {
+  const dialog = document.createElement('div');
+  dialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  dialog.innerHTML = `
+    <div class="neumorphic-card max-w-md w-full bg-white">
+      <div class="p-6">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+            <span class="text-2xl">🗑️</span>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">${title}</h3>
+        </div>
+        <p class="text-gray-600 mb-6">${message}</p>
+        <div class="flex space-x-3">
+          <button class="cancel-btn flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+            Cancel
+          </button>
+          <button class="confirm-btn flex-1 bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  dialog.querySelector('.cancel-btn').onclick = () => dialog.remove();
+  dialog.querySelector('.confirm-btn').onclick = () => {
+    dialog.remove();
+    onConfirm();
+  };
+  
+  document.body.appendChild(dialog);
+}
+
+function showTopNotification(message, type = 'info') {
+  const notification = document.getElementById('topNotification');
+  const icon = document.getElementById('notificationIcon');
+  const messageEl = document.getElementById('notificationMessage');
+  
+  // Set icon and message based on type
+  if (type === 'success') {
+    icon.textContent = '✅';
+  } else if (type === 'error') {
+    icon.textContent = '❌';
+  } else {
+    icon.textContent = 'ℹ️';
+  }
+  
+  messageEl.textContent = message;
+  
+  // Show notification
+  notification.classList.remove('hidden');
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+  }, 10);
+  
+  // Auto hide after 3 seconds
+  setTimeout(() => {
+    hideTopNotification();
+  }, 3000);
+}
+
+function hideTopNotification() {
+  const notification = document.getElementById('topNotification');
+  notification.style.transform = 'translateX(100%)';
+  setTimeout(() => {
+    notification.classList.add('hidden');
+  }, 300);
+}
+
+loadHistory();
+</script>
+{% endblock %}
