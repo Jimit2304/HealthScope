@@ -8,7 +8,7 @@ pipeline {
     }
 
     triggers {
-        pollSCM('H/5 * * * *') // Automatically check GitHub every 5 minutes
+        pollSCM('H/1 * * * *') // Automatically check GitHub every 1 minute
     }
 
     stages {
