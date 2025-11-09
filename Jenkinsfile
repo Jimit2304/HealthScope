@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         // 🔧 Path where your project lives
-        PROJECT_DIR = "/mnt/c/Projects/HealthScope"
+        PROJECT_DIR = "/var/lib/jenkins/workspace/HealthScope"
+
 
         // 🐳 Docker image name
         IMAGE_NAME = "healthscope-web"
