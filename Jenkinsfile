@@ -18,6 +18,12 @@ pipeline {
                 dir("${PROJECT_DIR}") {
                     deleteDir() // Clean old files
                     git branch: 'main', url: "${GIT_REPO}"
+
+                    // 🧾 Print Git commit hash & message for verification
+                    sh '''
+                    echo "🔍 Latest Commit Info:"
+                    git log -1 --pretty=format:"Commit: %h%nAuthor: %an%nDate: %ad%nMessage: %s"
+                    '''
                 }
             }
         }
