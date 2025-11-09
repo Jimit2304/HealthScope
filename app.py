@@ -31,11 +31,11 @@ STATIC_DIR = os.path.join(APP_DIR, 'static')
 
 # MySQL connection settings
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",         # change if different
-    "password": "root",     # change if different
-    "database": "diapredict",
-    "port": 3306,
+    "host": os.environ.get("DB_HOST", "localhost"),
+    "user": os.environ.get("DB_USER", "root"),
+    "password": os.environ.get("DB_PASSWORD", "root"),
+    "database": os.environ.get("DB_NAME", "diapredict"),
+    "port": int(os.environ.get("DB_PORT", "3306")),
     "charset": "utf8mb4"
 }
 
