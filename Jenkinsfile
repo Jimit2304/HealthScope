@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -9,36 +8,31 @@ pipeline {
     }
 
     triggers {
-        pollSCM('H/5 * * * *') // Check GitHub every 5 minutes for changes
+        pollSCM('H/5 * * * *') // Automatically check GitHub every 5 minutes
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo "📦 Checking out latest code..."
-                git branch: 'main', url: "${GIT_REPO}"
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
+                echo "📦 Pulling latest code from GitHub..."
                 dir("${PROJECT_DIR}") {
-                    sh '''
-                    echo "🐳 Building Docker image..."
-                    docker build --no-cache -t ${IMAGE_NAME}:latest .
-                    '''
+                    deleteDir() // Clean old files
+                    git branch: 'main', url: "${GIT_REPO}"
                 }
             }
         }
 
-        stage('Deploy Containers') {
+        stage('Build & Deploy Containers') {
             steps {
                 dir("${PROJECT_DIR}") {
                     sh '''
-                    echo "🧹 Cleaning up old containers..."
+                    echo "🐳 Stopping old containers..."
                     docker-compose down || true
 
-                    echo "🚀 Starting new containers..."
+                    echo "🧱 Rebuilding containers with latest code..."
+                    docker-compose build --no-cache
+
+                    echo "🚀 Starting updated containers..."
                     docker-compose up -d
                     '''
                 }
@@ -48,7 +42,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Auto-deployment successful!"
+            echo "✅ Deployment completed with updated code!"
         }
         failure {
             echo "❌ Deployment failed. Check Jenkins logs!"
