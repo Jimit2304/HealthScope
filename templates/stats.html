@@ -97,14 +97,14 @@
 </div>
 
 <!-- Notification -->
-<div id="notification" class="fixed top-4 right-4 z-50 hidden transform translate-x-full transition-transform duration-300">
-  <div class="neumorphic-card !p-4 max-w-sm">
-    <div class="flex items-center space-x-3">
-      <div id="notificationIcon" class="text-2xl"></div>
-      <div>
-        <div id="notificationMessage" class="text-sm font-medium text-gray-800"></div>
+<div id="notification" class="fixed top-4 left-4 right-4 z-50 hidden">
+  <div class="bg-white rounded-lg shadow-xl border border-gray-200 p-3 max-w-sm mx-auto">
+    <div class="flex items-center space-x-2">
+      <div id="notificationIcon" class="text-lg flex-shrink-0"></div>
+      <div class="flex-1 min-w-0">
+        <div id="notificationMessage" class="text-sm font-medium text-gray-800 truncate"></div>
       </div>
-      <button onclick="hideNotification()" class="text-gray-400 hover:text-gray-600 ml-2">
+      <button onclick="hideNotification()" class="text-gray-400 hover:text-gray-600 flex-shrink-0">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -433,36 +433,40 @@ async function deleteUser(userId, username) {
 
 function showDeleteUserDialog(username, onConfirm) {
   const dialog = document.createElement('div');
-  dialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  dialog.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 p-4';
+  dialog.style.display = 'flex';
+  dialog.style.alignItems = 'center';
+  dialog.style.justifyContent = 'center';
+  
   dialog.innerHTML = `
-    <div class="neumorphic-card max-w-md w-full bg-white">
-      <div class="p-6">
-        <div class="flex items-center mb-4">
-          <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
-            <span class="text-2xl">👤</span>
+    <div class="bg-white rounded-lg shadow-xl max-w-xs w-full">
+      <div class="p-4">
+        <div class="flex items-center mb-3">
+          <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+            <span class="text-sm">👤</span>
           </div>
-          <h3 class="text-xl font-bold text-gray-800">Delete User</h3>
+          <h3 class="text-base font-bold text-gray-800">Delete User</h3>
         </div>
-        <p class="text-gray-600 mb-4">Are you sure you want to delete user <strong>"${username}"</strong>?</p>
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+        <p class="text-sm text-gray-600 mb-3">Delete user "${username}"?</p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
           <div class="flex items-start">
-            <span class="text-yellow-500 mr-2">⚠️</span>
-            <div class="text-sm text-yellow-700">
-              <p class="font-medium mb-1">This action will:</p>
-              <ul class="list-disc list-inside space-y-1">
-                <li>Permanently remove the user account</li>
-                <li>Set their predictions to anonymous</li>
+            <span class="text-yellow-500 mr-2 text-sm">⚠️</span>
+            <div class="text-xs text-yellow-700">
+              <p class="font-medium mb-1">This will:</p>
+              <ul class="list-disc list-inside">
+                <li>Remove user account</li>
+                <li>Set predictions to anonymous</li>
                 <li>Cannot be undone</li>
               </ul>
             </div>
           </div>
         </div>
-        <div class="flex space-x-3">
-          <button class="cancel-btn flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+        <div class="flex space-x-2">
+          <button class="cancel-btn flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium">
             Cancel
           </button>
-          <button class="confirm-btn flex-1 bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors">
-            Delete User
+          <button class="confirm-btn flex-1 bg-red-500 text-white px-3 py-2 rounded text-sm font-medium">
+            Delete
           </button>
         </div>
       </div>
@@ -473,6 +477,10 @@ function showDeleteUserDialog(username, onConfirm) {
   dialog.querySelector('.confirm-btn').onclick = () => {
     dialog.remove();
     onConfirm();
+  };
+  
+  dialog.onclick = (e) => {
+    if (e.target === dialog) dialog.remove();
   };
   
   document.body.appendChild(dialog);
@@ -492,11 +500,7 @@ function showNotification(message, type = 'info') {
   }
   
   messageEl.textContent = message;
-  
   notification.classList.remove('hidden');
-  setTimeout(() => {
-    notification.style.transform = 'translateX(0)';
-  }, 10);
   
   setTimeout(() => {
     hideNotification();
@@ -505,10 +509,7 @@ function showNotification(message, type = 'info') {
 
 function hideNotification() {
   const notification = document.getElementById('notification');
-  notification.style.transform = 'translateX(100%)';
-  setTimeout(() => {
-    notification.classList.add('hidden');
-  }, 300);
+  notification.classList.add('hidden');
 }
 
 // Load all data
