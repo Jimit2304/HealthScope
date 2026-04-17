@@ -6,15 +6,22 @@ Run this before starting the main application
 
 import mysql.connector
 from mysql.connector import Error
+from werkzeug.security import generate_password_hash
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 # Database configuration
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "root",  # Change this to your MySQL root password
-    "port": 3306,
+    "host": os.environ.get("DB_HOST", "localhost"),
+    "user": os.environ.get("DB_USER", "root"),
+    "password": os.environ.get("DB_PASSWORD", "root"),
+    "port": int(os.environ.get("DB_PORT", 3306)),
     "charset": "utf8mb4"
 }
+
+ADMIN_USERNAME = "admin12"
+ADMIN_PASSWORD = "230406"
 
 def setup_database():
     """Create the database if it doesn't exist"""
@@ -54,6 +61,17 @@ def setup_database():
             FOREIGN KEY(user_id) REFERENCES users(id)
         )""")
         
+        # Insert default admin if not exists
+        cursor.execute("SELECT id FROM users WHERE username = %s", (ADMIN_USERNAME,))
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role) VALUES (%s, %s, 'admin')",
+                (ADMIN_USERNAME, generate_password_hash(ADMIN_PASSWORD))
+            )
+            print(f"✓ Admin user '{ADMIN_USERNAME}' created")
+        else:
+            print(f"✓ Admin user '{ADMIN_USERNAME}' already exists")
+
         connection.commit()
         print("✓ Tables created/verified")
         

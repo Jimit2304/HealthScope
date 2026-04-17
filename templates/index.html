@@ -1,8 +1,119 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="max-w-6xl mx-auto">
-  <!-- Initial Form View -->
-  <div id="form-view">
+  <!-- Disclaimer Form (shown first) -->
+  <div id="disclaimer-form-view">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full mb-6">
+        <span class="text-3xl text-white">⚠️</span>
+      </div>
+      <h1 class="text-4xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent mb-4">
+        Important Medical Disclaimer
+      </h1>
+      <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+        Please read and acknowledge this disclaimer before using the prediction tool
+      </p>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+      <div class="neumorphic-card">
+        <div class="bg-gradient-to-r from-red-500 to-orange-600 p-6 rounded-t-3xl">
+          <h2 class="text-2xl font-bold text-white mb-2">⚠️ Critical Medical Disclaimer</h2>
+          <p class="text-red-100">This tool is for educational purposes only - NOT for medical decisions</p>
+        </div>
+        
+        <div class="p-8 space-y-6">
+          <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+            <h3 class="font-bold text-red-800 mb-2">🚫 NOT A MEDICAL DEVICE</h3>
+            <p class="text-red-700">
+              <strong>HealthScope is NOT a medical device and is NOT intended for medical use.</strong> 
+              This is a machine learning demonstration project created for educational purposes only.
+            </p>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+              <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h4 class="font-bold text-yellow-800 mb-2">📊 Model Limitations</h4>
+                <ul class="text-yellow-700 text-sm space-y-1">
+                  <li>• ~77% accuracy (23% chance of error)</li>
+                  <li>• Statistical predictions, not diagnoses</li>
+                  <li>• Based on limited training data</li>
+                  <li>• Cannot replace medical testing</li>
+                </ul>
+              </div>
+              
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 class="font-bold text-blue-800 mb-2">🏥 Regulatory Status</h4>
+                <ul class="text-blue-700 text-sm space-y-1">
+                  <li>• Not cleared by CDSCO (India)</li>
+                  <li>• Not approved by FDA (USA)</li>
+                  <li>• No medical regulatory approval</li>
+                  <li>• Educational demonstration only</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="space-y-4">
+              <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h4 class="font-bold text-purple-800 mb-2">⚕️ What You Must Do</h4>
+                <ul class="text-purple-700 text-sm space-y-1">
+                  <li>• Consult healthcare professionals</li>
+                  <li>• Get proper medical testing</li>
+                  <li>• Don't make health decisions based on this</li>
+                  <li>• Use for learning purposes only</li>
+                </ul>
+              </div>
+              
+              <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 class="font-bold text-green-800 mb-2">✅ Safe Usage</h4>
+                <ul class="text-green-700 text-sm space-y-1">
+                  <li>• Educational exploration</li>
+                  <li>• Understanding ML concepts</li>
+                  <li>• Portfolio demonstration</li>
+                  <li>• Technology learning</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+            <h4 class="font-bold text-gray-800 mb-3">📋 Your Acknowledgment</h4>
+            <div class="space-y-3">
+              <label class="flex items-start space-x-3 cursor-pointer">
+                <input type="checkbox" id="disclaimer-1" class="mt-1 rounded">
+                <span class="text-sm text-gray-700">I understand this is NOT a medical device and NOT for medical use</span>
+              </label>
+              <label class="flex items-start space-x-3 cursor-pointer">
+                <input type="checkbox" id="disclaimer-2" class="mt-1 rounded">
+                <span class="text-sm text-gray-700">I will NOT make health decisions based on these predictions</span>
+              </label>
+              <label class="flex items-start space-x-3 cursor-pointer">
+                <input type="checkbox" id="disclaimer-3" class="mt-1 rounded">
+                <span class="text-sm text-gray-700">I will consult healthcare professionals for medical concerns</span>
+              </label>
+              <label class="flex items-start space-x-3 cursor-pointer">
+                <input type="checkbox" id="disclaimer-4" class="mt-1 rounded">
+                <span class="text-sm text-gray-700">I understand this is for educational/demonstration purposes only</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="text-center pt-4">
+            <button id="understand-submit-btn" disabled class="neumorphic-form red w-full py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+              <span class="flex items-center justify-center space-x-3">
+                <span class="text-xl">✅</span>
+                <span>I Understand & Want to Continue</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Health Metrics Form (shown after disclaimer) -->
+  <div id="form-view" class="hidden">
     <!-- Header Section -->
     <div class="text-center mb-8">
       <h1 class="text-4xl font-bold text-gray-800 mb-4">🩺 Diabetes Risk Assessment</h1>
@@ -247,8 +358,11 @@
             
             <!-- Prediction Result -->
             <div class="text-center mb-6">
-              <h3 class="text-lg font-semibold text-gray-700 mb-2">Prediction Result</h3>
-              <div id="prediction-result" class="text-2xl font-bold text-red-600">Diabetic</div>
+              <h3 class="text-lg font-semibold text-gray-700 mb-2">Model Prediction</h3>
+              <div id="prediction-result" class="text-2xl font-bold text-red-600 mb-2">Diabetic</div>
+              <div class="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-2">
+                <p><strong>Disclaimer:</strong> This is a statistical prediction, not a medical diagnosis. Consult a healthcare professional for clinical testing.</p>
+              </div>
             </div>
             
             <!-- Key Factors -->
@@ -385,6 +499,26 @@
 </div>
 
 <script>
+// Enable disclaimer button when all checkboxes are checked
+function checkDisclaimerForm() {
+  const checkboxes = ['disclaimer-1', 'disclaimer-2', 'disclaimer-3', 'disclaimer-4'];
+  const allChecked = checkboxes.every(id => document.getElementById(id).checked);
+  document.getElementById('understand-submit-btn').disabled = !allChecked;
+}
+
+// Add event listeners to checkboxes
+document.addEventListener('DOMContentLoaded', () => {
+  ['disclaimer-1', 'disclaimer-2', 'disclaimer-3', 'disclaimer-4'].forEach(id => {
+    document.getElementById(id).addEventListener('change', checkDisclaimerForm);
+  });
+  
+  // Handle disclaimer form submission
+  document.getElementById('understand-submit-btn').addEventListener('click', () => {
+    document.getElementById('disclaimer-form-view').classList.add('hidden');
+    document.getElementById('form-view').classList.remove('hidden');
+  });
+});
+
 function showAuthModal() {
   document.getElementById('auth-modal').classList.remove('hidden');
   document.getElementById('auth-modal').classList.add('flex');
@@ -460,7 +594,7 @@ function updateResults(data, result) {
   const riskColor = riskPercent > 66 ? '#ef4444' : riskPercent > 33 ? '#f59e0b' : '#10b981';
   
   // Update risk title and percentage
-  document.getElementById('risk-title').textContent = riskLevel;
+  document.getElementById('risk-title').textContent = `${riskLevel} (Demo)`;
   document.getElementById('risk-title').style.color = riskColor;
   document.getElementById('risk-percentage').textContent = riskPercent + '%';
   
@@ -510,15 +644,17 @@ function updateResults(data, result) {
     </div>
   `).join('');
   
-  // Update prediction result
-  const predictionText = result.prediction ? 'Diabetic' : 'Non-Diabetic';
+  // Update prediction result with medical disclaimer
+  const predictionText = result.prediction ? 'Model Suggests: Diabetic Risk' : 'Model Suggests: Low Risk';
   const predictionColor = result.prediction ? 'text-red-600' : 'text-green-600';
-  document.getElementById('prediction-result').textContent = predictionText;
-  document.getElementById('prediction-result').className = `text-2xl font-bold ${predictionColor}`;
+  document.getElementById('prediction-result').innerHTML = `
+    <div class="${predictionColor}">${predictionText}</div>
+    <div class="text-xs text-gray-500 mt-1">(Probability: ${riskPercent}% - Consult doctor for clinical test)</div>
+  `;
   
   // Update key factors
   document.getElementById('key-factors-text').textContent = 
-    `Your Glucose and BMI levels were primary factors in this prediction.`;
+    `Model identified Glucose and BMI as primary factors. This is a statistical analysis, not medical advice.`;
 }
 
 document.getElementById("predict-form").addEventListener("submit", async (e) => {

@@ -2,7 +2,12 @@
 # HealthScope Backend (Full) – Auth + History + Metrics + Pages (MySQL Version)
 # ==============================================================================
 import os, json, datetime, csv, io
+from dotenv import load_dotenv
+load_dotenv()
 from typing import Dict, Any
+from collections import defaultdict
+from functools import wraps
+import time
 
 from flask import Flask, request, jsonify, g, session, render_template, redirect, url_for, make_response
 from flask_cors import CORS
@@ -55,6 +60,20 @@ app.secret_key = os.environ.get('SECRET_KEY','dev-secret-key')
 CORS(app, supports_credentials=True)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# Security configurations
+if os.environ.get('FLASK_ENV') == 'production':
+    app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only in production
+else:
+    app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP in development
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JS access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(hours=24)
+
+# Rate limiting storage
+rate_limit_storage = defaultdict(list)
+RATE_LIMIT_REQUESTS = 100  # requests per window
+RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
 
 os.makedirs(STATIC_DIR, exist_ok=True)
 
@@ -129,6 +148,60 @@ def init_db():
     db.commit()
     cursor.close()
 
+# ------------------ Security Helpers ------------------
+def get_client_ip():
+    """Get client IP address, considering proxies"""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    elif request.headers.get('X-Real-IP'):
+        return request.headers.get('X-Real-IP')
+    return request.remote_addr
+
+def rate_limit(max_requests=RATE_LIMIT_REQUESTS, window=RATE_LIMIT_WINDOW):
+    """Rate limiting decorator"""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            client_ip = get_client_ip()
+            now = time.time()
+            
+            # Clean old requests
+            rate_limit_storage[client_ip] = [
+                req_time for req_time in rate_limit_storage[client_ip] 
+                if now - req_time < window
+            ]
+            
+            # Check rate limit
+            if len(rate_limit_storage[client_ip]) >= max_requests:
+                return jsonify({
+                    'error': 'Rate limit exceeded. Please try again later.',
+                    'retry_after': window
+                }), 429
+            
+            # Add current request
+            rate_limit_storage[client_ip].append(now)
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def validate_input_data(data, required_fields):
+    """Validate and sanitize input data"""
+    errors = []
+    
+    for field in required_fields:
+        if field not in data:
+            errors.append(f'Missing field: {field}')
+        elif not str(data[field]).strip():
+            errors.append(f'Empty field: {field}')
+    
+    return errors
+
+def sanitize_string(value, max_length=100):
+    """Sanitize string input"""
+    if not isinstance(value, str):
+        value = str(value)
+    return value.strip()[:max_length]
+
 # ------------------ Auth Helpers ------------------
 def current_user_id():
     return session.get('user_id')
@@ -187,6 +260,18 @@ def train_and_evaluate():
         }
     }
 
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self'"
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    return response
+
 # ------------------ Pages ------------------
 @app.route('/')
 def home_page():
@@ -227,6 +312,10 @@ def stats_page():
 def dashboard_page():
     return render_template('dashboard.html')
 
+@app.route('/terms')
+def terms_page():
+    return render_template('terms.html')
+
 
 
 # ------------------ API ------------------
@@ -250,14 +339,21 @@ def me():
     return jsonify({'authenticated': True, 'user': row})
 
 @app.post('/api/register')
+@rate_limit(max_requests=500, window=3600)  # 50 registrations per hour
 def api_register():
     data = request.get_json(force=True)
-    username = (data.get('username') or '').strip()
+    username = sanitize_string(data.get('username', ''), 50)
     password = data.get('password') or ''
+    
+    # Enhanced validation
+    if len(username) < 3:
+        return jsonify({'error': 'Username must be at least 3 characters'}), 400
+    if len(password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters'}), 400
+    
     # Role rule: username 'admin12' is admin, all others are user
     role = 'admin' if username.lower() == 'admin12' else 'user'
-    if not username or not password:
-        return jsonify({'error':'username and password required'}), 400
+    
     db = get_db()
     cursor = db.cursor()
     try:
@@ -276,10 +372,15 @@ def api_register():
         cursor.close()
 
 @app.post('/api/login')
+@rate_limit(max_requests=10, window=900)  # 10 login attempts per 15 minutes
 def api_login():
     data = request.get_json(force=True)
-    username = (data.get('username') or '').strip()
+    username = sanitize_string(data.get('username', ''), 50)
     password = data.get('password') or ''
+    
+    if not username or not password:
+        return jsonify({'error': 'Username and password required'}), 400
+    
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute("SELECT id, password_hash, role FROM users WHERE username=%s", (username,))
@@ -290,6 +391,7 @@ def api_login():
     session['user_id'] = row['id']
     # Enforce role rule regardless of DB value
     session['role'] = 'admin' if username.lower() == 'admin12' else 'user'
+    session.permanent = True
     return jsonify({'status':'ok'})
 
 @app.post('/api/logout')
@@ -360,22 +462,55 @@ def analyze_risk_factors(inputs):
 
 @app.post('/api/predict')
 @login_required
+@rate_limit(max_requests=50, window=3600)  # 50 predictions per hour
 def api_predict():
     if model is None:
         return jsonify({'error':'model not initialized'}), 500
     try:
         d = request.get_json(force=True)
         req = ['pregnancies','glucose','blood_pressure','insulin','bmi','age','family_diabetes']
-        if any(k not in d for k in req):
-            return jsonify({'error':'missing fields'}), 400
+        
+        # Validate required fields
+        validation_errors = validate_input_data(d, req)
+        if validation_errors:
+            return jsonify({'error': '; '.join(validation_errors)}), 400
+        
+        # Validate and sanitize numeric inputs
+        try:
+            pregnancies = int(d['pregnancies'])
+            glucose = float(d['glucose'])
+            blood_pressure = float(d['blood_pressure'])
+            insulin = float(d['insulin'])
+            bmi = float(d['bmi'])
+            age = float(d['age'])
+            family_diabetes = int(d['family_diabetes'])
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid numeric values provided'}), 400
+        
+        # Range validation
+        if not (0 <= pregnancies <= 20):
+            return jsonify({'error': 'Pregnancies must be between 0-20'}), 400
+        if not (50 <= glucose <= 400):
+            return jsonify({'error': 'Glucose must be between 50-400 mg/dL'}), 400
+        if not (40 <= blood_pressure <= 250):
+            return jsonify({'error': 'Blood pressure must be between 40-250 mmHg'}), 400
+        if not (0 <= insulin <= 500):
+            return jsonify({'error': 'Insulin must be between 0-500 μU/mL'}), 400
+        if not (10 <= bmi <= 70):
+            return jsonify({'error': 'BMI must be between 10-70'}), 400
+        if not (1 <= age <= 120):
+            return jsonify({'error': 'Age must be between 1-120 years'}), 400
+        if not (0 <= family_diabetes <= 10):
+            return jsonify({'error': 'Family diabetes count must be between 0-10'}), 400
+        
         x = {
-            'Pregnancies': int(d['pregnancies']),
-            'Glucose': float(d['glucose']),
-            'BloodPressure': float(d['blood_pressure']),
-            'Insulin': float(d['insulin']),
-            'BMI': float(d['bmi']),
-            'Age': float(d['age']),
-            'FamilyDiabetes': int(d['family_diabetes'])
+            'Pregnancies': pregnancies,
+            'Glucose': glucose,
+            'BloodPressure': blood_pressure,
+            'Insulin': insulin,
+            'BMI': bmi,
+            'Age': age,
+            'FamilyDiabetes': family_diabetes
         }
 
         # Match training-time preprocessing: replace zeros for select features
@@ -671,27 +806,43 @@ def get_local_ip():
 
 # --------------- Main ---------------
 if __name__ == '__main__':
+    # Security checks for production
+    if os.environ.get('FLASK_ENV') == 'production':
+        if app.secret_key == 'dev-secret-key':
+            print("❌ WARNING: Using default secret key in production!")
+            print("   Set SECRET_KEY environment variable")
+            exit(1)
+        
+        if DB_CONFIG['password'] == 'root':
+            print("❌ WARNING: Using default database password!")
+            print("   Set DB_PASSWORD environment variable")
+            exit(1)
+    
     try:
         with app.app_context():
             init_db()
             train_and_evaluate()
         
         local_ip = get_local_ip()
-        port = 5000
+        port = int(os.environ.get('PORT', 5000))
+        debug_mode = os.environ.get('FLASK_ENV') != 'production'
         
         print("\n" + "="*50)
-        print("🚀 DiaPredict Server Started!")
+        print("🚀 HealthScope Server Started!")
         print("="*50)
         print(f"🔗 Universal Link: http://{local_ip}:{port}")
-        print("\n📱 Use this link on any device:")
-        print("   • Mobile phones")
-        print("   • Laptops")
-        print("   • Tablets")
-        print("   • Desktop computers")
-        print("\n⚠️  All devices must be on same WiFi")
+        if debug_mode:
+            print("\n📱 Use this link on any device:")
+            print("   • Mobile phones")
+            print("   • Laptops")
+            print("   • Tablets")
+            print("   • Desktop computers")
+            print("\n⚠️  All devices must be on same WiFi")
+        else:
+            print("\n🔒 Production mode - Security features enabled")
         print("="*50)
         
-        app.run(host='0.0.0.0', port=port, debug=True)
+        app.run(host='0.0.0.0', port=port, debug=debug_mode)
     except Exception as e:
         print(f"❌ Failed to start: {e}")
         print("\n🔧 Check: MySQL server, database, credentials")

@@ -1,0 +1,195 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">Terms of Service & Privacy Policy</h1>
+    <p class="text-gray-600">Legal information for HealthScope users</p>
+  </div>
+
+  <!-- Terms of Service -->
+  <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+      <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      Terms of Service
+    </h2>
+    
+    <div class="space-y-4 text-gray-700">
+      <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+        <h3 class="font-bold text-red-800 mb-2">⚠️ CRITICAL MEDICAL DISCLAIMER</h3>
+        <p class="text-red-700">
+          <strong>HealthScope is NOT a medical device and is NOT intended for medical use.</strong> 
+          This application is a machine learning demonstration project created for educational and portfolio purposes only.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">1. Educational Purpose Only</h3>
+        <p>HealthScope demonstrates machine learning applications in healthcare prediction. All predictions are statistical estimates based on limited data and should never be used for actual health decisions.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">2. No Medical Advice</h3>
+        <p>This application does not provide medical advice, diagnosis, or treatment. The predictions generated are based on statistical models with approximately 77% accuracy, meaning there is a significant chance of incorrect results.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">3. Regulatory Status</h3>
+        <p>This system has not been cleared, approved, or registered by:</p>
+        <ul class="list-disc list-inside ml-4 mt-2">
+          <li>Central Drugs Standard Control Organization (CDSCO) - India</li>
+          <li>Food and Drug Administration (FDA) - USA</li>
+          <li>Any other medical regulatory body</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">4. User Responsibilities</h3>
+        <p>By using HealthScope, you agree to:</p>
+        <ul class="list-disc list-inside ml-4 mt-2">
+          <li>Use this application for educational/demonstration purposes only</li>
+          <li>Not rely on predictions for health decisions</li>
+          <li>Consult qualified healthcare professionals for medical concerns</li>
+          <li>Understand that results are not medical diagnoses</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">5. Limitation of Liability</h3>
+        <p>The developers, contributors, and hosting providers of HealthScope shall not be liable for any health-related decisions, medical outcomes, or damages resulting from the use of this application.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">6. Data Usage</h3>
+        <p>Health data entered into this system is processed for demonstration purposes. We recommend using test data rather than real personal health information.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy -->
+  <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+      <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+      </svg>
+      Privacy Policy (DPDP Act Compliance)
+    </h2>
+    
+    <div class="space-y-4 text-gray-700">
+      <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+        <h3 class="font-bold text-blue-800 mb-2">🛡️ Data Protection Commitment</h3>
+        <p class="text-blue-700">
+          We are committed to protecting your privacy in compliance with India's Digital Personal Data Protection (DPDP) Act, 2023.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">1. Data We Collect</h3>
+        <p>HealthScope may collect the following information:</p>
+        <ul class="list-disc list-inside ml-4 mt-2">
+          <li><strong>Account Information:</strong> Username, password (hashed)</li>
+          <li><strong>Health Metrics:</strong> Age, BMI, glucose levels, blood pressure, insulin levels, pregnancy count, family history</li>
+          <li><strong>Usage Data:</strong> Prediction history, timestamps</li>
+          <li><strong>Technical Data:</strong> IP address, browser information (for security)</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">2. How We Use Your Data</h3>
+        <ul class="list-disc list-inside ml-4">
+          <li>Generate diabetes risk predictions for demonstration</li>
+          <li>Store prediction history for your reference</li>
+          <li>Improve the machine learning model (anonymized data only)</li>
+          <li>Ensure application security and prevent abuse</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">3. Data Security</h3>
+        <p>We implement security measures including:</p>
+        <ul class="list-disc list-inside ml-4 mt-2">
+          <li>Password hashing using industry-standard methods</li>
+          <li>SQL injection prevention</li>
+          <li>XSS protection</li>
+          <li>Secure session management</li>
+          <li>HTTPS encryption (when deployed with SSL)</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">4. Your Rights (DPDP Act)</h3>
+        <p>Under the DPDP Act, you have the right to:</p>
+        <ul class="list-disc list-inside ml-4 mt-2">
+          <li><strong>Access:</strong> View your stored data through your dashboard</li>
+          <li><strong>Correction:</strong> Update incorrect information</li>
+          <li><strong>Erasure:</strong> Delete your account and all associated data</li>
+          <li><strong>Portability:</strong> Export your prediction history as CSV</li>
+          <li><strong>Grievance:</strong> Contact us for data-related concerns</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">5. Data Retention</h3>
+        <p>We retain your data only as long as necessary for the demonstration purpose. You can delete your account and all data at any time through the dashboard or by contacting us.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">6. Third-Party Sharing</h3>
+        <p>We do not sell, trade, or share your personal data with third parties. Data is used solely for this educational demonstration.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">7. Cookies and Tracking</h3>
+        <p>We use minimal cookies for:</p>
+        <ul class="list-disc list-inside ml-4 mt-2">
+          <li>Session management (login state)</li>
+          <li>User preferences (disclaimer acceptance)</li>
+          <li>No third-party tracking or advertising cookies</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Information -->
+  <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+      <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+      </svg>
+      Contact & Data Protection Officer
+    </h2>
+    
+    <div class="space-y-4 text-gray-700">
+      <div>
+        <h3 class="font-bold mb-2">For Data Protection Concerns:</h3>
+        <p>If you have questions about your data or wish to exercise your rights under the DPDP Act:</p>
+        <ul class="list-disc list-inside ml-4 mt-2">
+          <li><strong>Project:</strong> HealthScope - Educational ML Demo</li>
+          <li><strong>Developer:</strong> Jimit</li>
+          <li><strong>Purpose:</strong> Portfolio/Educational Demonstration</li>
+        </ul>
+      </div>
+
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+        <h3 class="font-bold text-yellow-800 mb-2">⚠️ Emergency Medical Situations</h3>
+        <p class="text-yellow-700">
+          <strong>This application cannot help with medical emergencies.</strong> 
+          For urgent health concerns, contact your local emergency services or healthcare provider immediately.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acceptance -->
+  <div class="bg-gray-50 rounded-lg p-6 text-center">
+    <h3 class="text-lg font-bold text-gray-800 mb-2">Agreement</h3>
+    <p class="text-gray-600 mb-4">
+      By using HealthScope, you acknowledge that you have read, understood, and agree to these terms and privacy policy.
+    </p>
+    <p class="text-sm text-gray-500">
+      Last updated: December 2024
+    </p>
+  </div>
+</div>
+{% endblock %}

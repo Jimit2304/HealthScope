@@ -141,3 +141,31 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 ⚠️ **Disclaimer**: This application is for educational purposes only. Always consult healthcare professionals for medical advice.
+
+## 🏥 Legal Compliance & Safety
+
+### Medical Disclaimer
+HealthScope is **NOT a medical device** and is **NOT intended for medical use**. This application:
+- Is created for educational and demonstration purposes only
+- Has not been cleared by CDSCO, FDA, or any medical regulatory body
+- Should never be used for actual health decisions
+- Provides statistical predictions, not medical diagnoses
+
+### Safe Deployment Guidelines
+To deploy this application safely:
+1. **Prominent Disclaimers**: Legal disclaimers are built into the interface
+2. **Terms of Service**: Comprehensive terms available at `/terms`
+3. **Data Privacy**: DPDP Act compliant privacy measures
+4. **Educational Framing**: All results clearly marked as "Demo" or "Educational"
+
+### Regulatory Considerations
+- **India (CDSCO)**: Compliant as educational demo with proper disclaimers
+- **Data Protection**: Follows Digital Personal Data Protection (DPDP) Act guidelines
+- **Liability Protection**: Comprehensive terms of service and user agreements
+
+### For Live Deployment
+1. Ensure SSL certificate (HTTPS)
+2. Review and customize disclaimer text
+3. Set up proper data backup procedures
+4. Monitor for any misuse as medical advice
+5. Consider adding "Delete My Data" functionality for users
